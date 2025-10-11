@@ -1,0 +1,16 @@
+[package]
+name = "phiny"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+members = ["phiny-cli","phiny-core","phiny-server"]
+
+
+[[bin]]
+name = "phiny"
+path = "phiny-cli/main.rs"
+
+[[bin]]
+name = "phiny-server"
+path = "phiny-server/main.rs"
