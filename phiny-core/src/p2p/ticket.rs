@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Ticket {
-    node_addrs: NodeAddr,
+    pub node_addrs: NodeAddr,
 }
 
 impl Ticket {

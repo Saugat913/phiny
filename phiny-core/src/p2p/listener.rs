@@ -1,5 +1,7 @@
-use iroh::Endpoint;
 use iroh::endpoint::{RecvStream, SendStream};
+use iroh::{Endpoint, NodeAddr};
+
+use crate::p2p::Ticket;
 
 use super::ALPN;
 
@@ -31,7 +33,9 @@ impl Listener {
                     let handler = handler;
                     tokio::spawn(async move {
                         let connection = incoming.await?;
-                        let (send, recv) = connection.accept_bi().await?;
+                        let (send, mut recv) = connection.accept_bi().await?;
+                        let mut handshake = [0u8; 1];
+                        recv.read_exact(&mut handshake).await?;
                         handler(send, recv).await?;
                         anyhow::Ok(())
                     });
@@ -40,5 +44,13 @@ impl Listener {
                 }
             }
         });
+    }
+
+    pub fn node_addr(&self) -> NodeAddr {
+        self.endpoint.node_addr()
+    }
+    pub fn get_ticket(&self) -> Ticket {
+        let ticket = Ticket::new(self.node_addr());
+        return ticket;
     }
 }

@@ -7,6 +7,9 @@ use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait},
 };
 
+//  Network Socket → Jitter Buffer → (Decoder Buffer if needed) → Output Device
+//                      |->TODO: Rearranging buffer according to timestamp
+//                                          |-> TODO: Decoder buffer (implement it in audio processing)
 pub struct OutputDevice {
     device: Device,
     config: SupportedStreamConfig,
