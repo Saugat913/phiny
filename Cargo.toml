@@ -1,5 +1,5 @@
 [workspace]
-members = ["phiny-cli","phiny-core","phiny-server"]
+members = ["phiny-cli","phiny-core"]
 default-members = ["phiny-cli"]
 
 [workspace.dependencies]
