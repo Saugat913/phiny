@@ -49,7 +49,12 @@ impl InputDevice {
             &config,
             move |data: &[f32], _: &cpal::InputCallbackInfo| {
                 info!("[Input device]:{}", data.len());
-                stream_tx_cloned.send(data.to_vec()).unwrap();
+                match stream_tx_cloned.send(data.to_vec()) {
+                    Err(error) => {
+                        eprintln!("Error occured when sending!");
+                    }
+                    Ok(_) => {}
+                }
             },
             move |err| {
                 warn!("Error occured at input audio device stream: {}", err);
@@ -72,5 +77,13 @@ impl InputDevice {
             }
         }
         return None;
+    }
+
+    pub fn sample_rate(&self) -> u32 {
+        self.config.sample_rate().0
+    }
+
+    pub fn channel(&self) -> u16 {
+        self.config.channels()
     }
 }

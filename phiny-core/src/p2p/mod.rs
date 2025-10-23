@@ -1,8 +1,9 @@
-mod connector;
-mod listener;
+mod connection;
+mod peer;
 mod ticket;
 
 pub const ALPN: &[u8] = b"phiny/audiocall/0";
-pub use connector::Connector;
-pub use listener::Listener;
 pub use ticket::Ticket;
+
+pub use connection::{Connection, Message};
+pub use peer::{ConnectionListener, Peer, PeerConfig};
