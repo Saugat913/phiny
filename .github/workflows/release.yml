@@ -36,6 +36,9 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
+      - name: Install ALSA development package
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev pkg-config 
 
       - name: Build release binary
         uses: actions-rs/cargo@v1
