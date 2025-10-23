@@ -1,0 +1,117 @@
+name: Release Phiny
+
+on:
+  push:
+    branches:
+      - release
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary_name: phiny
+            asset_name: phiny-linux-amd64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary_name: phiny.exe
+            asset_name: phiny-windows-amd64.exe
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            binary_name: phiny
+            asset_name: phiny-macos-amd64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+
+      - name: Build release binary
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --package phiny-cli --target ${{ matrix.target }}
+
+      - name: Rename binary
+        shell: bash
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cp target/${{ matrix.target }}/release/phiny-cli.exe ${{ matrix.asset_name }}
+          else
+            cp target/${{ matrix.target }}/release/phiny-cli ${{ matrix.asset_name }}
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}
+
+  create-release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: ./artifacts
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Phiny ${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          files: ./artifacts/**/*
+          body: |
+            # Phiny ${{ steps.get_version.outputs.VERSION }}
+            
+            P2P audio call application using Rust and iroh.
+            
+            ## Installation
+            
+            Download the appropriate binary for your platform:
+            - Windows: phiny-windows-amd64.exe
+            - macOS: phiny-macos-amd64
+            - Linux: phiny-linux-amd64
+            
+            Make the file executable (Linux/macOS):
+            ```
+            chmod +x phiny-*
+            ```
+            
+            ## Usage
+            
+            Start a listener:
+            ```
+            ./phiny listen
+            ```
+            
+            Connect to a listener:
+            ```
+            ./phiny connect <ticket>
+            ```
