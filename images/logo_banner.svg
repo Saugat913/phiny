@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" width="120" height="120">
+  <defs>
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4FC3F7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#29B6F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Phones and connection centered -->
+  <g transform="translate(10, 10)">
+    <!-- Left phone -->
+    <g transform="translate(55, 80) rotate(-15)">
+      <rect x="0" y="0" width="28" height="45" rx="4" fill="none" stroke="url(#blueGradient)" stroke-width="3.5"/>
+      <line x1="6" y1="38" x2="22" y2="38" stroke="#4FC3F7" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <!-- Right phone -->
+    <g transform="translate(117, 85) rotate(12)">
+      <rect x="0" y="0" width="28" height="45" rx="4" fill="none" stroke="url(#blueGradient)" stroke-width="3.5"/>
+      <line x1="6" y1="38" x2="22" y2="38" stroke="#4FC3F7" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <!-- Sound waves -->
+    <path d="M 75 95 Q 90 80, 100 90" fill="none" stroke="#4FC3F7" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 100 90 Q 110 100, 125 100" fill="none" stroke="#29B6F6" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 78 105 Q 95 110, 110 95" fill="none" stroke="#4FC3F7" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  </g>
+
+  <!-- Brand name with proper spacing below the logo -->
+  <text x="110" y="190"
+        font-family="'Brush Script MT', cursive"
+        font-size="42"
+        font-weight="400"
+        fill="url(#blueGradient)"
+        text-anchor="middle"
+        letter-spacing="1.5"
+        style="font-style: italic;">
+    Phiny
+  </text>
+</svg>
