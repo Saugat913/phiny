@@ -1,5 +1,5 @@
 # Phiny
-
+![Alt text](images/logo.svg "Phiny Logo")
 A minimal peer‑to‑peer audio call prototype using Rust and iroh. Includes a CLI for starting a listener and connecting via a shared ticket.
 
 ## Features
