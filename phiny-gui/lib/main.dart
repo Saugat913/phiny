@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phiny_gui/app/app.dart';
+import 'package:phiny_gui/app/app_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main(List<String> args) async {
@@ -18,5 +21,15 @@ Future<void> main(List<String> args) async {
     await windowManager.setTitle("Phiny");
     await windowManager.setMinimumSize(const Size(800, 600));
   });
-  runApp(PhinyApp());
+
+  final sharedPreferenceInstance = await SharedPreferences.getInstance();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferenceProvider.overrideWithValue(sharedPreferenceInstance),
+      ],
+      child: PhinyApp(),
+    ),
+  );
 }
