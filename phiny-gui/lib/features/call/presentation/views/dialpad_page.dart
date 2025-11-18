@@ -95,7 +95,12 @@ class DialPadPage extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        context.push("/calling");
+                        final id = Uri.encodeComponent(nodeIdController.text);
+                        final name = Uri.encodeComponent("Unknown");
+
+                        context.push(
+                          "/calling?incoming=false&nodeId=$id&name=$name",
+                        );
                       },
                       icon: const Icon(Icons.phone, color: Colors.white),
                       label: Text(

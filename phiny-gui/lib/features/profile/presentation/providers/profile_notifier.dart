@@ -9,9 +9,14 @@ class ProfileNotifier extends _$ProfileNotifier {
   @override
   Profile build() {
     final sharedPreference = ref.watch(sharedPreferenceProvider);
+    final nodeAddress = ref.watch(peerNodeProvider);
     return Profile(
       displayName: sharedPreference.getString(DISPLAY_NAME_STORING_KEY),
-      nodeAddress: "node-dummy-address-todo-fetch-from-rust-backend",
+      nodeAddress: nodeAddress.when(
+        data: (data) => data.getNodeAddress(),
+        error: (error, stack) => "",
+        loading: () => "",
+      ),
     );
   }
 

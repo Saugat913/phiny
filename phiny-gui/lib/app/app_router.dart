@@ -41,7 +41,15 @@ class AppRouter {
                 GoRoute(
                   path: "/calling",
                   builder: (context, state) {
-                    return CallingPage(targetNodeId: "ce");
+                    final params = state.uri.queryParameters;
+                    final isIncoming = params["incoming"] == "true";
+                    final name = params["name"] ?? "Unknown";
+                    final nodeId = params["nodeId"] ?? "";
+                    return CallingPage(
+                      targetNodeId: nodeId,
+                      isIncoming: isIncoming,
+                      targetName: name,
+                    );
                   },
                 ),
               ],

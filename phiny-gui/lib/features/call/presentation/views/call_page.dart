@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phiny_gui/app/app_provider.dart';
 import 'package:phiny_gui/app/theme/app_color.dart';
 import 'package:phiny_gui/app/theme/app_size.dart';
 
 enum CallState { ringing, connecting, connected }
 
-class CallingPage extends StatefulWidget {
+class CallingPage extends ConsumerStatefulWidget {
   final String targetNodeId;
   final String targetName;
   final bool isIncoming;
 
   const CallingPage({
-    Key? key,
+    super.key,
     required this.targetNodeId,
     this.targetName = "Unknown",
     this.isIncoming = false,
-  }) : super(key: key);
+  });
 
   @override
-  State<CallingPage> createState() => _CallingPageState();
+  ConsumerState<CallingPage> createState() => _CallingPageState();
 }
 
-class _CallingPageState extends State<CallingPage>
+class _CallingPageState extends ConsumerState<CallingPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   CallState _callState = CallState.ringing;
@@ -54,6 +56,11 @@ class _CallingPageState extends State<CallingPage>
   }
 
   void _acceptCall() {
+    if (widget.isIncoming) {
+      final incoming = ref.read(incomingCallProvider);
+      incoming?.decision.complete(true);
+      ref.read(incomingCallProvider.notifier).state = null;
+    }
     setState(() {
       _callState = CallState.connecting;
     });
@@ -84,6 +91,11 @@ class _CallingPageState extends State<CallingPage>
   }
 
   void _endCall() {
+    if (_callState == CallState.ringing && widget.isIncoming) {
+      final incoming = ref.read(incomingCallProvider);
+      incoming?.decision.complete(false);
+      ref.read(incomingCallProvider.notifier).state = null;
+    }
     Navigator.pop(context);
   }
 

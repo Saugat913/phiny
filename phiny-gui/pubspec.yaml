@@ -42,6 +42,9 @@ dependencies:
   riverpod_annotation: ^3.0.3
   shared_preferences: ^2.5.3
   qr_flutter: ^4.1.0
+  rust_lib_phiny_gui:
+    path: rust_builder
+  flutter_rust_bridge: 2.11.1
 
 dev_dependencies:
   flutter_test:
@@ -58,6 +61,8 @@ dev_dependencies:
   riverpod_generator: ^3.0.3
   custom_lint: ^0.8.0
   riverpod_lint: ^3.0.3
+  integration_test:
+    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -6,8 +6,7 @@ import 'package:phiny_gui/app/theme/app_size.dart';
 class EditProfilePage extends StatefulWidget {
   final String initialUserName;
 
-  const EditProfilePage({Key? key, this.initialUserName = "Testing"})
-    : super(key: key);
+  const EditProfilePage({super.key, this.initialUserName = "Testing"});
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();

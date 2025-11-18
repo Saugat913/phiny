@@ -43,7 +43,7 @@ final class ProfileSetupViewModelProvider
 }
 
 String _$profileSetupViewModelHash() =>
-    r'7b42fb572db7d193817d89992a66a15dbcf37c30';
+    r'336dbd0901fec739ca14481b34b1cd2880919acc';
 
 abstract class _$ProfileSetupViewModel
     extends $Notifier<ProfileSetupViewModelState> {
