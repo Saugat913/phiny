@@ -10,6 +10,14 @@ A minimal peer‑to‑peer audio call prototype using Rust and iroh. Includes a 
 - CLI with `listen` and `connect <ticket>` commands
 - Audio input/output processing utilities present in core 
 
+## Screenshots
+<p align="center">
+ <img src="images/screenshots/dialpad.png" alt="Dialpad" width="320">
+ <img src="images/screenshots/call_received.png" alt="Incoming Call" width="320">
+ <img src="images/screenshots/call_connect.png" alt="In Call" width="320">
+ <img src="images/screenshots/profile.png" alt="Profile" width="320">
+</p>
+
 ## Project Layout
 - `phiny-core`: Core library (audio IO/processing, P2P primitives)
 - `phiny-cli`: CLI tool for testing P2P connections and simple calls
