@@ -38,6 +38,6 @@ class ProfileViewModel extends _$ProfileViewModel {
   }
 
   Future<void> logout() async {
-    await ref.read(profileProvider.notifier).removeDisplayName();
+    await ref.read(displayNameProvider.notifier).removeDisplayName();
   }
 }

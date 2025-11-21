@@ -5,34 +5,43 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'profile_notifier.g.dart';
 
 @riverpod
-class ProfileNotifier extends _$ProfileNotifier {
+class DisplayName extends _$DisplayName {
   @override
-  Profile build() {
+  String? build() {
     final sharedPreference = ref.watch(sharedPreferenceProvider);
-    final nodeAddress = ref.watch(peerNodeProvider);
-    return Profile(
-      displayName: sharedPreference.getString(DISPLAY_NAME_STORING_KEY),
-      nodeAddress: nodeAddress.when(
-        data: (data) => data.getNodeAddress(),
-        error: (error, stack) => "",
-        loading: () => "",
-      ),
-    );
+    return sharedPreference.getString(DISPLAY_NAME_STORING_KEY);
   }
 
   Future<void> setDisplayName(String displayName) async {
-    state = state.copyWith(displayName: displayName);
+    state = displayName;
     await ref
         .read(sharedPreferenceProvider)
         .setString(DISPLAY_NAME_STORING_KEY, displayName);
   }
 
   String? getDisplayName() {
-    return state.displayName;
+    return state;
   }
 
   Future<void> removeDisplayName() async {
     await ref.read(sharedPreferenceProvider).remove(DISPLAY_NAME_STORING_KEY);
-    state = state.copyWith(displayName: null);
+    state = null;
+  }
+}
+
+@riverpod
+class ProfileNotifier extends _$ProfileNotifier {
+  @override
+  Profile build() {
+    final displayName = ref.watch(displayNameProvider);
+    final connectionManager = ref.watch(callManagerAdoptorProvider);
+    return Profile(
+      displayName: displayName,
+      nodeAddress: connectionManager.when(
+        data: (data) => data.getNodeAddress(),
+        error: (_, __) => "",
+        loading: () => "Loading ...",
+      ),
+    );
   }
 }

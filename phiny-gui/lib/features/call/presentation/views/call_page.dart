@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phiny_gui/app/app_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phiny_gui/app/theme/app_color.dart';
 import 'package:phiny_gui/app/theme/app_size.dart';
-
-enum CallState { ringing, connecting, connected }
+import 'package:phiny_gui/features/call/presentation/viewmodels/call_viewmodels.dart';
+import 'package:phiny_gui/features/call/presentation/state/call_viewmodels_state.dart';
 
 class CallingPage extends ConsumerStatefulWidget {
   final String targetNodeId;
   final String targetName;
-  final bool isIncoming;
 
   const CallingPage({
     super.key,
     required this.targetNodeId,
     this.targetName = "Unknown",
-    this.isIncoming = false,
   });
 
   @override
@@ -25,10 +23,6 @@ class CallingPage extends ConsumerStatefulWidget {
 class _CallingPageState extends ConsumerState<CallingPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
-  CallState _callState = CallState.ringing;
-  Duration _callDuration = Duration.zero;
-  bool _isMuted = false;
-  bool _isSpeakerOn = false;
 
   @override
   void initState() {
@@ -38,15 +32,10 @@ class _CallingPageState extends ConsumerState<CallingPage>
       duration: const Duration(milliseconds: 1500),
     )..repeat();
 
-    // If incoming call, start in ringing state
-    // Otherwise simulate connection after 3 seconds
-    if (!widget.isIncoming) {
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          _acceptCall();
-        }
-      });
-    }
+    // Start the call automatically when page opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(callViewModelProvider.notifier).startCall();
+    });
   }
 
   @override
@@ -55,60 +44,11 @@ class _CallingPageState extends ConsumerState<CallingPage>
     super.dispose();
   }
 
-  void _acceptCall() {
-    if (widget.isIncoming) {
-      final incoming = ref.read(incomingCallProvider);
-      incoming?.decision.complete(true);
-      ref.read(incomingCallProvider.notifier).state = null;
-    }
-    setState(() {
-      _callState = CallState.connecting;
-    });
-
-    // Simulate connection delay
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _callState = CallState.connected;
-        });
-        _startCallTimer();
-      }
-    });
-  }
-
-  void _startCallTimer() {
-    Future.doWhile(() async {
-      if (!mounted || _callState != CallState.connected) return false;
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted && _callState == CallState.connected) {
-        setState(() {
-          _callDuration += const Duration(seconds: 1);
-        });
-        return true;
-      }
-      return false;
-    });
-  }
-
   void _endCall() {
-    if (_callState == CallState.ringing && widget.isIncoming) {
-      final incoming = ref.read(incomingCallProvider);
-      incoming?.decision.complete(false);
-      ref.read(incomingCallProvider.notifier).state = null;
+    ref.read(callViewModelProvider.notifier).endCall();
+    if (mounted) {
+      context.go("/dialpad");
     }
-    Navigator.pop(context);
-  }
-
-  void _toggleMute() {
-    setState(() {
-      _isMuted = !_isMuted;
-    });
-  }
-
-  void _toggleSpeaker() {
-    setState(() {
-      _isSpeakerOn = !_isSpeakerOn;
-    });
   }
 
   String _formatDuration(Duration duration) {
@@ -123,19 +63,25 @@ class _CallingPageState extends ConsumerState<CallingPage>
     return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
 
-  String _getStatusText() {
-    switch (_callState) {
-      case CallState.ringing:
-        return widget.isIncoming ? 'Incoming call...' : 'Calling...';
-      case CallState.connecting:
+  String _getStatusText(CallViewState callState, Duration duration) {
+    switch (callState) {
+      case CallViewState.connecting:
         return 'Connecting...';
-      case CallState.connected:
-        return _formatDuration(_callDuration);
+      case CallViewState.connected:
+        return _formatDuration(duration);
+      case CallViewState.idle:
+        return 'Call ended';
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final callState = ref.watch(callViewModelProvider);
+
+    if (callState.callState == CallViewState.idle) {
+      _endCall();
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -158,7 +104,8 @@ class _CallingPageState extends ConsumerState<CallingPage>
                         height: 140,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          boxShadow: _callState == CallState.ringing
+                          boxShadow:
+                              callState.callState == CallViewState.connecting
                               ? [
                                   BoxShadow(
                                     color: AppColors.primary.withOpacity(
@@ -200,13 +147,13 @@ class _CallingPageState extends ConsumerState<CallingPage>
 
                   // Status or Timer
                   Text(
-                    _getStatusText(),
+                    _getStatusText(callState.callState, callState.callDuration),
                     style: TextStyle(
                       fontSize: AppSize.fontMedium,
-                      color: _callState == CallState.connected
+                      color: callState.callState == CallViewState.connected
                           ? AppColors.success
                           : AppColors.textSecondary,
-                      fontWeight: _callState == CallState.connected
+                      fontWeight: callState.callState == CallViewState.connected
                           ? FontWeight.w600
                           : FontWeight.normal,
                     ),
@@ -214,87 +161,50 @@ class _CallingPageState extends ConsumerState<CallingPage>
 
                   const SizedBox(height: AppSize.paddingSmall),
 
-                  // Node ID
-                  Container(
-                    constraints: const BoxConstraints(maxWidth: 400),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSize.paddingMedium,
-                      vertical: AppSize.paddingSmall,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(AppSize.radiusMedium),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Text(
-                      widget.targetNodeId,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        fontFamily: 'monospace',
-                      ),
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-
                   const Spacer(),
 
                   // Control buttons (only when connected)
-                  if (_callState == CallState.connected) ...[
+                  if (callState.callState == CallViewState.connected) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _buildControlButton(
-                          icon: _isMuted ? Icons.mic_off : Icons.mic,
+                          icon: callState.isMuted ? Icons.mic_off : Icons.mic,
                           label: 'Mute',
-                          isActive: _isMuted,
-                          onTap: _toggleMute,
+                          isActive: callState.isMuted,
+                          onTap: () {
+                            ref
+                                .read(callViewModelProvider.notifier)
+                                .toggleMute();
+                          },
                         ),
                         const SizedBox(width: AppSize.paddingLarge),
                         _buildControlButton(
-                          icon: _isSpeakerOn
+                          icon: callState.isSpeakerOn
                               ? Icons.volume_up
                               : Icons.volume_down,
                           label: 'Speaker',
-                          isActive: _isSpeakerOn,
-                          onTap: _toggleSpeaker,
+                          isActive: callState.isSpeakerOn,
+                          onTap: () {
+                            ref
+                                .read(callViewModelProvider.notifier)
+                                .toggleSpeaker();
+                          },
                         ),
                       ],
                     ),
                     const SizedBox(height: AppSize.paddingXLarge),
                   ],
 
-                  // Call action buttons
-                  if (_callState == CallState.ringing && widget.isIncoming)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildCallButton(
-                          icon: Icons.call_end,
-                          color: AppColors.red,
-                          label: 'Decline',
-                          onTap: _endCall,
-                        ),
-                        const SizedBox(width: AppSize.paddingXLarge),
-                        _buildCallButton(
-                          icon: Icons.call,
-                          color: AppColors.success,
-                          label: 'Accept',
-                          onTap: _acceptCall,
-                        ),
-                      ],
-                    )
-                  else
-                    _buildCallButton(
-                      icon: Icons.call_end,
-                      color: AppColors.red,
-                      label: _callState == CallState.connected
-                          ? 'End Call'
-                          : 'Cancel',
-                      onTap: _endCall,
-                    ),
+                  // End call button
+                  _buildCallButton(
+                    icon: Icons.call_end,
+                    color: AppColors.red,
+                    label: callState.callState == CallViewState.connected
+                        ? 'End Call'
+                        : 'Cancel',
+                    onTap: _endCall,
+                  ),
 
                   const SizedBox(height: AppSize.paddingLarge),
                 ],

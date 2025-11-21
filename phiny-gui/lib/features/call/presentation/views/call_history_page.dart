@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:phiny_gui/app/theme/app_color.dart';
 
 class CallRecord {
-  final String nodeId;
+  final String displayName;
   final String type;
   final String time;
 
-  CallRecord(this.nodeId, this.type, this.time);
+  CallRecord(this.displayName, this.type, this.time);
 }
 
 class CallHistoryPage extends StatelessWidget {
@@ -113,7 +113,7 @@ class CallHistoryPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  call.nodeId,
+                  call.displayName,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,

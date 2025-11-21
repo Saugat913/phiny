@@ -1,48 +1,84 @@
+import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:phiny_gui/app/app_constants.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:phiny_gui/features/call/presentation/viewmodels/call_viewmodels.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:phiny_gui/features/profile/presentation/providers/profile_notifier.dart';
 import 'package:phiny_gui/src/rust/api/phiny_core_adaptor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:async';
+
+part 'app_provider.freezed.dart';
 part 'app_provider.g.dart';
 
-class IncomingCallState {
-  final String callerName;
-  final Completer<bool> decision;
-  IncomingCallState(this.callerName, this.decision);
+@freezed
+abstract class IncomingCallDecisionState with _$IncomingCallDecisionState {
+  const factory IncomingCallDecisionState({
+    required Completer<bool>? completer,
+    required AudioPlayer audioPlayer,
+    required String? targetName,
+  }) = _IncomingCallDecisionState;
 }
 
 @riverpod
-class IncomingCall extends _$IncomingCall {
+class IncomingCallDecision extends _$IncomingCallDecision {
   @override
-  IncomingCallState? build() => null;
+  IncomingCallDecisionState build() {
+    return IncomingCallDecisionState(
+      completer: null,
+      audioPlayer: AudioPlayer(),
+      targetName: null,
+    );
+  }
+
+  Future<void> setCompleter(
+    Completer<bool> completer, {
+    String? targetName,
+  }) async {
+    await state.audioPlayer.play(AssetSource("ringtone/rockstar_dearveni.mp3"));
+    print("SetCompleter: Target name: $targetName");
+
+    state = state.copyWith(completer: completer, targetName: targetName);
+  }
+
+  Future<void> acceptIncomingCall() async {
+    if (state.completer != null) state.completer!.complete(true);
+    await state.audioPlayer.stop();
+    state = state.copyWith(completer: null);
+  }
+
+  Future<void> rejectIncomingCall() async {
+    if (state.completer != null) state.completer!.complete(false);
+    await state.audioPlayer.stop();
+
+    state = state.copyWith(completer: null, targetName: null);
+  }
+
+  String? getTargetName() => state.targetName;
 }
 
 @riverpod
 SharedPreferences sharedPreference(Ref ref) => throw UnimplementedError;
 
-final peerNodeProvider = FutureProvider((ref) async {
-  final sharedPreference = ref.watch(sharedPreferenceProvider);
-  final displayName = sharedPreference.getString(DISPLAY_NAME_STORING_KEY);
-  final peerNode = await initialize(displayName: displayName ?? "");
+final callManagerAdoptorProvider = FutureProvider((ref) async {
+  final displayName = ref.watch(displayNameProvider);
+
+  final peerNode = await CallManagerAdaptor.initialize(
+    displayName: displayName ?? "",
+    onCallReceived: (displayName) async {
+      final completer = Completer<bool>();
+      print(" on call received :Target displayName: $displayName");
+      await ref
+          .read(incomingCallDecisionProvider.notifier)
+          .setCompleter(completer, targetName: displayName);
+      return await completer.future;
+    },
+    onCallAccepted: (CallSessionAdaptor session) async {
+      return true;
+    },
+  );
 
   print("Peer initialized ");
   return peerNode;
-});
-
-final connectionAdaptorProvider = FutureProvider<ConnectionAdaptor>((
-  ref,
-) async {
-  final peerNode = await ref.watch(peerNodeProvider.future);
-  return peerNode.listen(
-    onReceivedConnection: (displayName) async {
-      final completer = Completer<bool>();
-      ref.read(incomingCallProvider.notifier).state = IncomingCallState(
-        displayName,
-        completer,
-      );
-      return completer.future;
-    },
-  );
 });

@@ -66,7 +66,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 820205979;
+  int get rustContentHash => 511709811;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -77,67 +77,43 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  Future<Connection?> crateApiPhinyCoreAdaptorConnectionAdaptorAccept({
-    required ConnectionAdaptor that,
+  Future<void> crateApiPhinyCoreAdaptorCallManagerAdaptorCall({
+    required CallManagerAdaptor that,
+    required String ticket,
+    required FutureOr<bool> Function(CallSessionAdaptor) onCallAccepted,
+    required FutureOr<bool> Function() onCallRejected,
   });
 
-  String crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorGetDisplayName({
-    required PeerAdaptor that,
+  String crateApiPhinyCoreAdaptorCallManagerAdaptorGetNodeAddress({
+    required CallManagerAdaptor that,
   });
 
-  String crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorGetNodeAddress({
-    required PeerAdaptor that,
-  });
-
-  void crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorSetDisplayName({
-    required PeerAdaptor that,
+  Future<CallManagerAdaptor>
+  crateApiPhinyCoreAdaptorCallManagerAdaptorInitialize({
     required String displayName,
-  });
-
-  void crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorSetNodeAddress({
-    required PeerAdaptor that,
-    required String nodeAddress,
-  });
-
-  String crateApiPhinyCoreAdaptorPeerAdaptorGetNodeAddress({
-    required PeerAdaptor that,
-  });
-
-  Future<ConnectionAdaptor> crateApiPhinyCoreAdaptorPeerAdaptorListen({
-    required PeerAdaptor that,
-    required FutureOr<bool> Function(String) onReceivedConnection,
+    required FutureOr<bool> Function(String) onCallReceived,
+    required FutureOr<bool> Function(CallSessionAdaptor) onCallAccepted,
   });
 
   Future<void> crateApiPhinyCoreAdaptorInitApp();
 
-  Future<PeerAdaptor> crateApiPhinyCoreAdaptorInitialize({
-    required String displayName,
-  });
-
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_Connection;
+  get rust_arc_increment_strong_count_CallManagerAdaptor;
 
   RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_Connection;
-
-  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ConnectionPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ConnectionAdaptor;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ConnectionAdaptor;
+  get rust_arc_decrement_strong_count_CallManagerAdaptor;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ConnectionAdaptorPtr;
+  get rust_arc_decrement_strong_count_CallManagerAdaptorPtr;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_PeerAdaptor;
+  get rust_arc_increment_strong_count_CallSessionAdaptor;
 
   RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_PeerAdaptor;
+  get rust_arc_decrement_strong_count_CallSessionAdaptor;
 
-  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_PeerAdaptorPtr;
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_CallSessionAdaptorPtr;
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -149,15 +125,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Future<Connection?> crateApiPhinyCoreAdaptorConnectionAdaptorAccept({
-    required ConnectionAdaptor that,
+  Future<void> crateApiPhinyCoreAdaptorCallManagerAdaptorCall({
+    required CallManagerAdaptor that,
+    required String ticket,
+    required FutureOr<bool> Function(CallSessionAdaptor) onCallAccepted,
+    required FutureOr<bool> Function() onCallRejected,
   }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor(
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
             that,
+            serializer,
+          );
+          sse_encode_String(ticket, serializer);
+          sse_encode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor_Output_bool_AnyhowException(
+            onCallAccepted,
+            serializer,
+          );
+          sse_encode_DartFn_Inputs__Output_bool_AnyhowException(
+            onCallRejected,
             serializer,
           );
           pdeCallFfi(
@@ -168,32 +156,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection,
+          decodeSuccessData: sse_decode_unit,
           decodeErrorData: null,
         ),
-        constMeta: kCrateApiPhinyCoreAdaptorConnectionAdaptorAcceptConstMeta,
-        argValues: [that],
+        constMeta: kCrateApiPhinyCoreAdaptorCallManagerAdaptorCallConstMeta,
+        argValues: [that, ticket, onCallAccepted, onCallRejected],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiPhinyCoreAdaptorConnectionAdaptorAcceptConstMeta =>
+  TaskConstMeta get kCrateApiPhinyCoreAdaptorCallManagerAdaptorCallConstMeta =>
       const TaskConstMeta(
-        debugName: "ConnectionAdaptor_accept",
-        argNames: ["that"],
+        debugName: "CallManagerAdaptor_call",
+        argNames: ["that", "ticket", "onCallAccepted", "onCallRejected"],
       );
 
   @override
-  String crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorGetDisplayName({
-    required PeerAdaptor that,
+  String crateApiPhinyCoreAdaptorCallManagerAdaptorGetNodeAddress({
+    required CallManagerAdaptor that,
   }) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
             that,
             serializer,
           );
@@ -201,10 +188,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
+          decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta:
-            kCrateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorGetDisplayNameConstMeta,
+            kCrateApiPhinyCoreAdaptorCallManagerAdaptorGetNodeAddressConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
@@ -212,187 +199,57 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   TaskConstMeta
-  get kCrateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorGetDisplayNameConstMeta =>
+  get kCrateApiPhinyCoreAdaptorCallManagerAdaptorGetNodeAddressConstMeta =>
       const TaskConstMeta(
-        debugName: "PeerAdaptor_auto_accessor_get_display_name",
+        debugName: "CallManagerAdaptor_get_node_address",
         argNames: ["that"],
       );
 
   @override
-  String crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorGetNodeAddress({
-    required PeerAdaptor that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorGetNodeAddressConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorGetNodeAddressConstMeta =>
-      const TaskConstMeta(
-        debugName: "PeerAdaptor_auto_accessor_get_node_address",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorSetDisplayName({
-    required PeerAdaptor that,
+  Future<CallManagerAdaptor>
+  crateApiPhinyCoreAdaptorCallManagerAdaptorInitialize({
     required String displayName,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-            that,
-            serializer,
-          );
-          sse_encode_String(displayName, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorSetDisplayNameConstMeta,
-        argValues: [that, displayName],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorSetDisplayNameConstMeta =>
-      const TaskConstMeta(
-        debugName: "PeerAdaptor_auto_accessor_set_display_name",
-        argNames: ["that", "displayName"],
-      );
-
-  @override
-  void crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorSetNodeAddress({
-    required PeerAdaptor that,
-    required String nodeAddress,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-            that,
-            serializer,
-          );
-          sse_encode_String(nodeAddress, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorSetNodeAddressConstMeta,
-        argValues: [that, nodeAddress],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorSetNodeAddressConstMeta =>
-      const TaskConstMeta(
-        debugName: "PeerAdaptor_auto_accessor_set_node_address",
-        argNames: ["that", "nodeAddress"],
-      );
-
-  @override
-  String crateApiPhinyCoreAdaptorPeerAdaptorGetNodeAddress({
-    required PeerAdaptor that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiPhinyCoreAdaptorPeerAdaptorGetNodeAddressConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApiPhinyCoreAdaptorPeerAdaptorGetNodeAddressConstMeta =>
-      const TaskConstMeta(
-        debugName: "PeerAdaptor_get_node_address",
-        argNames: ["that"],
-      );
-
-  @override
-  Future<ConnectionAdaptor> crateApiPhinyCoreAdaptorPeerAdaptorListen({
-    required PeerAdaptor that,
-    required FutureOr<bool> Function(String) onReceivedConnection,
+    required FutureOr<bool> Function(String) onCallReceived,
+    required FutureOr<bool> Function(CallSessionAdaptor) onCallAccepted,
   }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-            that,
+          sse_encode_String(displayName, serializer);
+          sse_encode_DartFn_Inputs_String_Output_bool_AnyhowException(
+            onCallReceived,
             serializer,
           );
-          sse_encode_DartFn_Inputs_String_Output_bool_AnyhowException(
-            onReceivedConnection,
+          sse_encode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor_Output_bool_AnyhowException(
+            onCallAccepted,
             serializer,
           );
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 3,
             port: port_,
           );
         },
         codec: SseCodec(
           decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor,
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor,
           decodeErrorData: sse_decode_String,
         ),
-        constMeta: kCrateApiPhinyCoreAdaptorPeerAdaptorListenConstMeta,
-        argValues: [that, onReceivedConnection],
+        constMeta:
+            kCrateApiPhinyCoreAdaptorCallManagerAdaptorInitializeConstMeta,
+        argValues: [displayName, onCallReceived, onCallAccepted],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiPhinyCoreAdaptorPeerAdaptorListenConstMeta =>
+  TaskConstMeta
+  get kCrateApiPhinyCoreAdaptorCallManagerAdaptorInitializeConstMeta =>
       const TaskConstMeta(
-        debugName: "PeerAdaptor_listen",
-        argNames: ["that", "onReceivedConnection"],
+        debugName: "CallManagerAdaptor_initialize",
+        argNames: ["displayName", "onCallReceived", "onCallAccepted"],
       );
 
   @override
@@ -404,7 +261,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 4,
             port: port_,
           );
         },
@@ -422,36 +279,43 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiPhinyCoreAdaptorInitAppConstMeta =>
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
-  @override
-  Future<PeerAdaptor> crateApiPhinyCoreAdaptorInitialize({
-    required String displayName,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(displayName, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 9,
-            port: port_,
+  Future<void> Function(int, dynamic)
+  encode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor_Output_bool_AnyhowException(
+    FutureOr<bool> Function(CallSessionAdaptor) raw,
+  ) {
+    return (callId, rawArg0) async {
+      final arg0 =
+          dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor(
+            rawArg0,
           );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor,
-          decodeErrorData: sse_decode_String,
-        ),
-        constMeta: kCrateApiPhinyCoreAdaptorInitializeConstMeta,
-        argValues: [displayName],
-        apiImpl: this,
-      ),
-    );
-  }
 
-  TaskConstMeta get kCrateApiPhinyCoreAdaptorInitializeConstMeta =>
-      const TaskConstMeta(debugName: "initialize", argNames: ["displayName"]);
+      Box<bool>? rawOutput;
+      Box<AnyhowException>? rawError;
+      try {
+        rawOutput = Box(await raw(arg0));
+      } catch (e, s) {
+        rawError = Box(AnyhowException("$e\n\n$s"));
+      }
+
+      final serializer = SseSerializer(generalizedFrbRustBinding);
+      assert((rawOutput != null) ^ (rawError != null));
+      if (rawOutput != null) {
+        serializer.buffer.putUint8(0);
+        sse_encode_bool(rawOutput.value, serializer);
+      } else {
+        serializer.buffer.putUint8(1);
+        sse_encode_AnyhowException(rawError!.value, serializer);
+      }
+      final output = serializer.intoRaw();
+
+      generalizedFrbRustBinding.dartFnDeliverOutput(
+        callId: callId,
+        ptr: output.ptr,
+        rustVecLen: output.rustVecLen,
+        dataLen: output.dataLen,
+      );
+    };
+  }
 
   Future<void> Function(int, dynamic)
   encode_DartFn_Inputs_String_Output_bool_AnyhowException(
@@ -488,29 +352,53 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     };
   }
 
+  Future<void> Function(int) encode_DartFn_Inputs__Output_bool_AnyhowException(
+    FutureOr<bool> Function() raw,
+  ) {
+    return (callId) async {
+      Box<bool>? rawOutput;
+      Box<AnyhowException>? rawError;
+      try {
+        rawOutput = Box(await raw());
+      } catch (e, s) {
+        rawError = Box(AnyhowException("$e\n\n$s"));
+      }
+
+      final serializer = SseSerializer(generalizedFrbRustBinding);
+      assert((rawOutput != null) ^ (rawError != null));
+      if (rawOutput != null) {
+        serializer.buffer.putUint8(0);
+        sse_encode_bool(rawOutput.value, serializer);
+      } else {
+        serializer.buffer.putUint8(1);
+        sse_encode_AnyhowException(rawError!.value, serializer);
+      }
+      final output = serializer.intoRaw();
+
+      generalizedFrbRustBinding.dartFnDeliverOutput(
+        callId: callId,
+        ptr: output.ptr,
+        rustVecLen: output.rustVecLen,
+        dataLen: output.dataLen,
+      );
+    };
+  }
+
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_Connection => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection;
+  get rust_arc_increment_strong_count_CallManagerAdaptor => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor;
 
   RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_Connection => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection;
+  get rust_arc_decrement_strong_count_CallManagerAdaptor => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ConnectionAdaptor => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor;
+  get rust_arc_increment_strong_count_CallSessionAdaptor => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor;
 
   RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ConnectionAdaptor => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_PeerAdaptor => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_PeerAdaptor => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor;
+  get rust_arc_decrement_strong_count_CallSessionAdaptor => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor;
 
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw) {
@@ -519,62 +407,51 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Connection
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
+  CallManagerAdaptor
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ConnectionImpl.frbInternalDcoDecode(raw as List<dynamic>);
+    return CallManagerAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
-  ConnectionAdaptor
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor(
+  CallSessionAdaptor
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ConnectionAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
+    return CallSessionAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
-  PeerAdaptor
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
+  CallManagerAdaptor
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PeerAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
+    return CallManagerAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
-  ConnectionAdaptor
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor(
+  FutureOr<bool> Function(CallSessionAdaptor)
+  dco_decode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor_Output_bool_AnyhowException(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ConnectionAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  PeerAdaptor
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PeerAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  PeerAdaptor
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PeerAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
+    throw UnimplementedError('');
   }
 
   @protected
   FutureOr<bool> Function(String)
   dco_decode_DartFn_Inputs_String_Output_bool_AnyhowException(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError('');
+  }
+
+  @protected
+  FutureOr<bool> Function()
+  dco_decode_DartFn_Inputs__Output_bool_AnyhowException(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     throw UnimplementedError('');
   }
@@ -586,30 +463,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Connection
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
+  CallManagerAdaptor
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ConnectionImpl.frbInternalDcoDecode(raw as List<dynamic>);
+    return CallManagerAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
-  ConnectionAdaptor
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor(
+  CallSessionAdaptor
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ConnectionAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  PeerAdaptor
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PeerAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
+    return CallSessionAdaptorImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -625,17 +493,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Connection
-  dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-      raw,
-    );
-  }
-
-  @protected
   PlatformInt64 dco_decode_isize(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodeI64(raw);
@@ -645,19 +502,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
-  }
-
-  @protected
-  Connection?
-  dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null
-        ? null
-        : dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-            raw,
-          );
   }
 
   @protected
@@ -686,72 +530,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Connection
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
+  CallManagerAdaptor
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return ConnectionImpl.frbInternalSseDecode(
+    return CallManagerAdaptorImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
   }
 
   @protected
-  ConnectionAdaptor
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor(
+  CallSessionAdaptor
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return ConnectionAdaptorImpl.frbInternalSseDecode(
+    return CallSessionAdaptorImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
   }
 
   @protected
-  PeerAdaptor
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
+  CallManagerAdaptor
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return PeerAdaptorImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ConnectionAdaptor
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ConnectionAdaptorImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  PeerAdaptor
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PeerAdaptorImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  PeerAdaptor
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PeerAdaptorImpl.frbInternalSseDecode(
+    return CallManagerAdaptorImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -765,36 +573,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Connection
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
+  CallManagerAdaptor
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return ConnectionImpl.frbInternalSseDecode(
+    return CallManagerAdaptorImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
   }
 
   @protected
-  ConnectionAdaptor
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor(
+  CallSessionAdaptor
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return ConnectionAdaptorImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  PeerAdaptor
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PeerAdaptorImpl.frbInternalSseDecode(
+    return CallSessionAdaptorImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -814,17 +610,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Connection
-  sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-      deserializer,
-    ));
-  }
-
-  @protected
   PlatformInt64 sse_decode_isize(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getPlatformInt64();
@@ -835,22 +620,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
     return deserializer.buffer.getUint8List(len_);
-  }
-
-  @protected
-  Connection?
-  sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-        deserializer,
-      ));
-    } else {
-      return null;
-    }
   }
 
   @protected
@@ -887,78 +656,54 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-    Connection self,
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
+    CallManagerAdaptor self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
-      (self as ConnectionImpl).frbInternalSseEncode(move: true),
+      (self as CallManagerAdaptorImpl).frbInternalSseEncode(move: true),
       serializer,
     );
   }
 
   @protected
   void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor(
-    ConnectionAdaptor self,
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor(
+    CallSessionAdaptor self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
-      (self as ConnectionAdaptorImpl).frbInternalSseEncode(move: true),
+      (self as CallSessionAdaptorImpl).frbInternalSseEncode(move: true),
       serializer,
     );
   }
 
   @protected
   void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-    PeerAdaptor self,
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
+    CallManagerAdaptor self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
-      (self as PeerAdaptorImpl).frbInternalSseEncode(move: true),
+      (self as CallManagerAdaptorImpl).frbInternalSseEncode(move: false),
       serializer,
     );
   }
 
   @protected
   void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor(
-    ConnectionAdaptor self,
+  sse_encode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor_Output_bool_AnyhowException(
+    FutureOr<bool> Function(CallSessionAdaptor) self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ConnectionAdaptorImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-    PeerAdaptor self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PeerAdaptorImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-    PeerAdaptor self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PeerAdaptorImpl).frbInternalSseEncode(move: false),
+    sse_encode_DartOpaque(
+      encode_DartFn_Inputs_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor_Output_bool_AnyhowException(
+        self,
+      ),
       serializer,
     );
   }
@@ -971,6 +716,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_DartOpaque(
       encode_DartFn_Inputs_String_Output_bool_AnyhowException(self),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_DartFn_Inputs__Output_bool_AnyhowException(
+    FutureOr<bool> Function() self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_DartOpaque(
+      encode_DartFn_Inputs__Output_bool_AnyhowException(self),
       serializer,
     );
   }
@@ -992,39 +749,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-    Connection self,
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallManagerAdaptor(
+    CallManagerAdaptor self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
-      (self as ConnectionImpl).frbInternalSseEncode(move: null),
+      (self as CallManagerAdaptorImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
 
   @protected
   void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnectionAdaptor(
-    ConnectionAdaptor self,
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCallSessionAdaptor(
+    CallSessionAdaptor self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
-      (self as ConnectionAdaptorImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPeerAdaptor(
-    PeerAdaptor self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PeerAdaptorImpl).frbInternalSseEncode(move: null),
+      (self as CallSessionAdaptorImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -1042,19 +786,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void
-  sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-    Connection self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-      self,
-      serializer,
-    );
-  }
-
-  @protected
   void sse_encode_isize(PlatformInt64 self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putPlatformInt64(self);
@@ -1068,23 +799,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putUint8List(self);
-  }
-
-  @protected
-  void
-  sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-    Connection? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerConnection(
-        self,
-        serializer,
-      );
-    }
   }
 
   @protected
@@ -1112,100 +826,63 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 }
 
 @sealed
-class ConnectionAdaptorImpl extends RustOpaque implements ConnectionAdaptor {
+class CallManagerAdaptorImpl extends RustOpaque implements CallManagerAdaptor {
   // Not to be used by end users
-  ConnectionAdaptorImpl.frbInternalDcoDecode(List<dynamic> wire)
+  CallManagerAdaptorImpl.frbInternalDcoDecode(List<dynamic> wire)
     : super.frbInternalDcoDecode(wire, _kStaticData);
 
   // Not to be used by end users
-  ConnectionAdaptorImpl.frbInternalSseDecode(
+  CallManagerAdaptorImpl.frbInternalSseDecode(
     BigInt ptr,
     int externalSizeOnNative,
   ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
 
   static final _kStaticData = RustArcStaticData(
     rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_ConnectionAdaptor,
+        RustLib.instance.api.rust_arc_increment_strong_count_CallManagerAdaptor,
     rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_ConnectionAdaptor,
+        RustLib.instance.api.rust_arc_decrement_strong_count_CallManagerAdaptor,
     rustArcDecrementStrongCountPtr: RustLib
         .instance
         .api
-        .rust_arc_decrement_strong_count_ConnectionAdaptorPtr,
+        .rust_arc_decrement_strong_count_CallManagerAdaptorPtr,
   );
 
-  Future<Connection?> accept() => RustLib.instance.api
-      .crateApiPhinyCoreAdaptorConnectionAdaptorAccept(that: this);
-}
-
-@sealed
-class ConnectionImpl extends RustOpaque implements Connection {
-  // Not to be used by end users
-  ConnectionImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  ConnectionImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_Connection,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_Connection,
-    rustArcDecrementStrongCountPtr:
-        RustLib.instance.api.rust_arc_decrement_strong_count_ConnectionPtr,
+  Future<void> call({
+    required String ticket,
+    required FutureOr<bool> Function(CallSessionAdaptor) onCallAccepted,
+    required FutureOr<bool> Function() onCallRejected,
+  }) => RustLib.instance.api.crateApiPhinyCoreAdaptorCallManagerAdaptorCall(
+    that: this,
+    ticket: ticket,
+    onCallAccepted: onCallAccepted,
+    onCallRejected: onCallRejected,
   );
-}
-
-@sealed
-class PeerAdaptorImpl extends RustOpaque implements PeerAdaptor {
-  // Not to be used by end users
-  PeerAdaptorImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  PeerAdaptorImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_PeerAdaptor,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_PeerAdaptor,
-    rustArcDecrementStrongCountPtr:
-        RustLib.instance.api.rust_arc_decrement_strong_count_PeerAdaptorPtr,
-  );
-
-  String get displayName => RustLib.instance.api
-      .crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorGetDisplayName(
-        that: this,
-      );
-
-  String get nodeAddress => RustLib.instance.api
-      .crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorGetNodeAddress(
-        that: this,
-      );
-
-  set displayName(String displayName) => RustLib.instance.api
-      .crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorSetDisplayName(
-        that: this,
-        displayName: displayName,
-      );
-
-  set nodeAddress(String nodeAddress) => RustLib.instance.api
-      .crateApiPhinyCoreAdaptorPeerAdaptorAutoAccessorSetNodeAddress(
-        that: this,
-        nodeAddress: nodeAddress,
-      );
 
   String getNodeAddress() => RustLib.instance.api
-      .crateApiPhinyCoreAdaptorPeerAdaptorGetNodeAddress(that: this);
+      .crateApiPhinyCoreAdaptorCallManagerAdaptorGetNodeAddress(that: this);
+}
 
-  Future<ConnectionAdaptor> listen({
-    required FutureOr<bool> Function(String) onReceivedConnection,
-  }) => RustLib.instance.api.crateApiPhinyCoreAdaptorPeerAdaptorListen(
-    that: this,
-    onReceivedConnection: onReceivedConnection,
+@sealed
+class CallSessionAdaptorImpl extends RustOpaque implements CallSessionAdaptor {
+  // Not to be used by end users
+  CallSessionAdaptorImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  CallSessionAdaptorImpl.frbInternalSseDecode(
+    BigInt ptr,
+    int externalSizeOnNative,
+  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_CallSessionAdaptor,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_CallSessionAdaptor,
+    rustArcDecrementStrongCountPtr: RustLib
+        .instance
+        .api
+        .rust_arc_decrement_strong_count_CallSessionAdaptorPtr,
   );
 }

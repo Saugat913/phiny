@@ -1,35 +1,58 @@
+import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../state/call_viewmodels_state.dart';
 part 'call_viewmodels.g.dart';
 
 @riverpod
 class CallViewModel extends _$CallViewModel {
+  Timer? _callTimer;
+
   @override
   CallViewModelState build() {
-    return CallViewModelState(
-      callState: CallViewState.ringing,
+    // Cleanup timer when provider is disposed
+    ref.onDispose(() {
+      _callTimer?.cancel();
+    });
+
+    return const CallViewModelState(
+      callState: CallViewState.idle,
       callDuration: Duration.zero,
       isMuted: false,
       isSpeakerOn: false,
     );
   }
 
-  void acceptCall() {
+  void startCall() {
     state = state.copyWith(callState: CallViewState.connecting);
 
     // Simulate connection delay
-    Future.delayed(const Duration(seconds: 1), () {
-      state = state.copyWith(callState: CallViewState.connected);
-      _startCallTimer();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (state.callState == CallViewState.connecting) {
+        state = state.copyWith(callState: CallViewState.connected);
+        _startCallTimer();
+      }
     });
   }
 
   void _startCallTimer() {
-    // Implementation for call timer
+    _callTimer?.cancel();
+    _callTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (state.callState == CallViewState.connected) {
+        state = state.copyWith(
+          callDuration: state.callDuration + const Duration(seconds: 1),
+        );
+      } else {
+        timer.cancel();
+      }
+    });
   }
 
   void endCall() {
-    // Implementation for ending call
+    _callTimer?.cancel();
+    state = state.copyWith(
+      callState: CallViewState.idle,
+      callDuration: Duration.zero,
+    );
   }
 
   void toggleMute() {

@@ -4,12 +4,14 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Ticket {
+    pub display_name: String,
     pub node_addrs: NodeAddr,
 }
 
 impl Ticket {
-    pub fn new(node_addr: NodeAddr) -> Self {
+    pub fn new(display_name: String, node_addr: NodeAddr) -> Self {
         Self {
+            display_name: display_name,
             node_addrs: node_addr,
         }
     }

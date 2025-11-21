@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 part 'call_viewmodels_state.freezed.dart';
 
-enum CallViewState { ringing, connecting, connected }
+enum CallViewState { connecting, connected, idle }
 
 @freezed
 abstract class CallViewModelState with _$CallViewModelState {

@@ -30,7 +30,7 @@ class ProfileSetupViewModel extends _$ProfileSetupViewModel {
       return;
     }
     state = state.copyWith(errorMsg: null, isLoading: true);
-    await ref.read(profileProvider.notifier).setDisplayName(displayName);
+    await ref.read(displayNameProvider.notifier).setDisplayName(displayName);
     state = state.copyWith(isLoading: false, displayName: displayName);
   }
 }

@@ -6,35 +6,27 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `CallHandshake`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `borrow_decode`, `decode`, `deserialize`, `encode`, `fmt`, `serialize`
-
-Future<PeerAdaptor> initialize({required String displayName}) => RustLib
-    .instance
-    .api
-    .crateApiPhinyCoreAdaptorInitialize(displayName: displayName);
-
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Connection>>
-abstract class Connection implements RustOpaqueInterface {}
-
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ConnectionAdaptor>>
-abstract class ConnectionAdaptor implements RustOpaqueInterface {
-  Future<Connection?> accept();
-}
-
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PeerAdaptor>>
-abstract class PeerAdaptor implements RustOpaqueInterface {
-  String get displayName;
-
-  String get nodeAddress;
-
-  set displayName(String displayName);
-
-  set nodeAddress(String nodeAddress);
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CallManagerAdaptor>>
+abstract class CallManagerAdaptor implements RustOpaqueInterface {
+  Future<void> call({
+    required String ticket,
+    required FutureOr<bool> Function(CallSessionAdaptor) onCallAccepted,
+    required FutureOr<bool> Function() onCallRejected,
+  });
 
   String getNodeAddress();
 
-  Future<ConnectionAdaptor> listen({
-    required FutureOr<bool> Function(String) onReceivedConnection,
-  });
+  static Future<CallManagerAdaptor> initialize({
+    required String displayName,
+    required FutureOr<bool> Function(String) onCallReceived,
+    required FutureOr<bool> Function(CallSessionAdaptor) onCallAccepted,
+  }) =>
+      RustLib.instance.api.crateApiPhinyCoreAdaptorCallManagerAdaptorInitialize(
+        displayName: displayName,
+        onCallReceived: onCallReceived,
+        onCallAccepted: onCallAccepted,
+      );
 }
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CallSessionAdaptor>>
+abstract class CallSessionAdaptor implements RustOpaqueInterface {}

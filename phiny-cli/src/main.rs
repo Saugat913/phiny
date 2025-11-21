@@ -1,18 +1,14 @@
+use std::io::{self, Write};
 use std::sync::Arc;
+use tokio::sync::Mutex;
+use tokio::time::Duration;
 
 use anyhow::anyhow;
-use bincode::{Decode, Encode};
 use clap::Parser;
-use log::LevelFilter;
 
-use phiny_core::{
-    audio::{
-        io::{InputDevice, OutputDevice},
-        processing::processor::{InputProcessor, OutputProcessor},
-    },
-    p2p::{Message, Peer, PeerConfig, Ticket},
-};
-use tokio::sync::Mutex;
+use phiny_core::CallManager;
+use phiny_core::CallSession;
+
 /// Phiny - A simple p2p audio calling application
 #[derive(Debug, Parser)]
 struct Cli {
@@ -20,213 +16,138 @@ struct Cli {
     commands: Commands,
 }
 
-
-
-
 #[derive(Debug, Clone, clap::Subcommand)]
 enum Commands {
     /// Start the audio call listener
     Listen,
-
     /// Call the peer using the ticket
     Connect { ticket: String },
 }
 
-#[derive(Debug, Encode, Decode)]
-struct AudioFrame {
-    data: Vec<u8>,
-}
-
-impl Message for AudioFrame {
-    fn deserialize(data: &[u8]) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
-        let deserialized_data = bincode::decode_from_slice(data, bincode::config::standard())?;
-        return Ok(deserialized_data.0);
-    }
-    fn serialize(&self) -> anyhow::Result<Vec<u8>> {
-        let serialized_data = bincode::encode_to_vec(self, bincode::config::standard())?;
-        return Ok(serialized_data);
-    }
-}
-
-#[derive(Debug, Decode, Encode)]
-struct TextMessage(String);
-
-impl Message for TextMessage {
-    fn deserialize(data: &[u8]) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
-        let deserialized_data = bincode::decode_from_slice(data, bincode::config::standard())?;
-        return Ok(deserialized_data.0);
-    }
-    fn serialize(&self) -> anyhow::Result<Vec<u8>> {
-        let serialized_data = bincode::encode_to_vec(self, bincode::config::standard())?;
-        return Ok(serialized_data);
-    }
-}
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let mut logger = env_logger::Builder::new();
-    logger
-        .filter(Some("phiny_core::audio"), LevelFilter::Info)
-        .init();
-
-    test_listener_and_connector().await?;
-    Ok(())
-}
-
-async fn test_audio_io_feedback() -> anyhow::Result<()> {
-    let mut input_device = InputDevice::new()?;
-    let mut output_device = OutputDevice::new()?;
-
-    input_device.init()?;
-    output_device.init()?;
-
-    while let Some(data) = input_device.receive().await {
-        output_device.send(data).await?;
-    }
-
-    Ok(())
-}
-
-async fn test_p2p_data_transfer() -> anyhow::Result<()> {
-    let cli = Cli::parse();
-    match cli.commands {
-        Commands::Connect { ticket } => {
-            let peer = Peer::new(PeerConfig::default()).await?;
-            let ticket = Ticket::decode(&ticket)?;
-            let mut connection = peer.connect(ticket.node_addrs.clone()).await?;
-
-            println!("Connected to peer {}", ticket.node_addrs.node_id);
-            let text_message: Option<TextMessage> = connection.receive().await?;
-            match text_message {
-                None => {}
-                Some(msg) => {
-                    println!("Received from listener:{}", msg.0);
-                }
-            }
-            connection
-                .send(TextMessage("I am connector".to_string()))
-                .await?;
-            tokio::signal::ctrl_c().await?;
-        }
-        Commands::Listen => {
-            let peer = Peer::new(PeerConfig::default()).await?;
-            let mut listener = peer.listen().await?;
-            let self_ticket = Ticket::new(peer.address());
-
-            println!(
-                "🎟️ Share this ticket with your peer:\n{}",
-                self_ticket.encode()?
-            );
-
-            if let Some(mut connection) = listener.accept().await? {
-                println!("Peer connected!");
-                connection
-                    .send(TextMessage("I am listener".to_string()))
-                    .await?;
-                println!("Sent the message");
-
-                let text_message: Option<TextMessage> = connection.receive().await?;
-                match text_message {
-                    None => {
-                        println!("Received none");
-                    }
-                    Some(msg) => {
-                        println!("Received from connector:{}", msg.0);
-                    }
-                }
-            }
-            tokio::signal::ctrl_c().await?;
-        }
-    }
-
-    Ok(())
-}
-
-async fn test_listener_and_connector() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
+    // Prompt for display name
+    print!("Enter your display name: ");
+    io::stdout().flush()?;
+    let mut display_name = String::new();
+    io::stdin().read_line(&mut display_name)?;
+    let display_name = display_name.trim().to_string();
+    if display_name.is_empty() {
+        return Err(anyhow!("Display name cannot be empty."));
+    }
+
     match cli.commands {
-        Commands::Connect { ticket } => {
-            let peer = Peer::new(PeerConfig::default()).await?;
-            let ticket = Ticket::decode(&ticket)?;
-            let connection = peer.connect(ticket.node_addrs.clone()).await?;
-
-            println!("Connected to peer {}", ticket.node_addrs.node_id);
-            let input_device = Arc::new(Mutex::new(InputDevice::new()?));
-            let mut processor = InputProcessor::new(48000, 1)?;
-
-            let mut input_device = input_device.lock().await;
-            if let Err(e) = input_device.init() {
-                return Err(anyhow!("Input init error: {}", e));
-            }
-
-            while let Some(data) = input_device.receive().await {
-                match processor.process_stream(&data) {
-                    Ok(processed_data) => {
-                        if let Err(e) = connection
-                            .send(AudioFrame {
-                                data: processed_data,
-                            })
-                            .await
-                        {
-                            eprintln!("Send error: {}", e);
-                            break;
-                        }
-                    }
-                    Err(e) => eprintln!("Processing error: {}", e),
-                }
-            }
-
-            tokio::signal::ctrl_c().await?;
-        }
-
         Commands::Listen => {
-            let peer = Peer::new(PeerConfig::default()).await?;
-            let mut listener = peer.listen().await?;
-            let self_ticket = Ticket::new(peer.address());
+            println!("📞 Listening for calls... Share your ticket with a friend to get started.");
 
-            println!(
-                "🎟️ Share this ticket with your peer:\n{}",
-                self_ticket.encode()?
-            );
+            // This callback is executed when an incoming call is received.
+            let on_call_received = async |caller_name: String| {
+                print!("Incoming call from '{}'. Accept? (y/n): ", caller_name);
+                io::stdout().flush().unwrap();
+                let mut input = String::new();
+                io::stdin().read_line(&mut input).unwrap();
+                let input = input.trim().to_lowercase();
+                input == "y" || input == "yes"
+            };
 
-            let output_device = Arc::new(Mutex::new(OutputDevice::new()?));
-
-            if let Some(mut connection) = listener.accept().await? {
-                println!("Peer connected!");
-
-                let mut processor = OutputProcessor::new(48000, 1)?;
-                let output_device = Arc::clone(&output_device);
-
+            // This callback is executed if the user accepts the call.
+            let on_call_accepted = async |call_session: CallSession| {
+                println!("✅ Call accepted!");
+                // Spawn a task to manage the call session's lifecycle.
                 tokio::spawn(async move {
-                    let mut output_device = output_device.lock().await;
-                    if let Err(e) = output_device.init() {
-                        eprintln!("Output init error: {}", e);
-                        return;
+                    println!("🎙️ Call in progress. Press Ctrl+C to end the call.");
+                    // Wait for the user to signal the end of the call.
+                    if let Err(e) = tokio::signal::ctrl_c().await {
+                        eprintln!("Failed to listen for ctrl_c signal: {}", e);
                     }
-
-                    while let Ok(Some(bytes)) = connection.receive::<AudioFrame>().await {
-                        println!("Get processed data to output device");
-                        match processor.process_stream(&bytes.data) {
-                            Ok(processed) => {
-                                if let Err(e) = output_device.send(processed).await {
-                                    eprintln!("Output send error: {}", e);
-                                    break;
-                                }
-                            }
-                            Err(e) => eprintln!("Processing error: {}", e),
-                        }
-                    }
+                    println!("Ending call...");
+                    // End the call session.
+                    call_session.end().await;
+                    println!("Call ended. The application is still listening for new calls.");
                 });
+            };
 
-                tokio::signal::ctrl_c().await?;
+            // Initialize the CallManager, which starts listening in the background.
+            let _call_manager =
+                CallManager::initialize(display_name, on_call_received, on_call_accepted).await?;
+
+            println!("Ticket:{}", _call_manager.get_ticket()?);
+            // The main function now just waits for a Ctrl+C to exit the entire application.
+            println!("Press Ctrl+C to exit the application.");
+            tokio::signal::ctrl_c().await?;
+            println!("Exiting application.");
+        }
+        Commands::Connect { ticket } => {
+            println!("📞 Calling peer...");
+
+            // Use a shared flag to signal when the call attempt is finished.
+            let is_call_finished = Arc::new(Mutex::new(false));
+
+            // Clone the Arc for the 'accepted' callback.
+            let is_call_finished_for_accept = is_call_finished.clone();
+            let on_call_accepted = {
+                move |call_session: CallSession| {
+                    let is_call_finished_task = is_call_finished_for_accept.clone();
+
+                    async move {
+                        println!("✅ Call accepted!");
+                        // Clone the Arc again for the new task.
+                        let is_call_finished_task = is_call_finished_task.clone();
+                        tokio::spawn(async move {
+                            println!("🎙️ Call in progress. Press Ctrl+C to end the call.");
+                            tokio::signal::ctrl_c().await.ok(); // Ignore error on shutdown
+                            println!("Ending call...");
+                            call_session.end().await;
+                            println!("Call ended.");
+                            // Signal that the call is finished.
+                            *is_call_finished_task.lock().await = true;
+                        });
+                    }
+                }
+            };
+
+            // Clone the Arc for the 'rejected' callback.
+            let is_call_finished_for_reject = is_call_finished.clone();
+            let on_call_rejected = {
+                move || {
+                    let is_call_finished_for_reject = is_call_finished_for_reject.clone();
+                    async move {
+                        println!("❌ Call was rejected or the peer is busy.");
+                        let is_call_finished_clone = is_call_finished_for_reject.clone();
+                        tokio::spawn(async move {
+                            // Signal that the call attempt is finished.
+                            *is_call_finished_clone.lock().await = true;
+                        });
+                    }
+                }
+            };
+
+            // We need to initialize the CallManager to get an instance.
+            let call_manager = CallManager::initialize(
+                display_name.clone(),
+                async |_caller_name| false, // Reject all incoming calls while we are trying to make an outbound one.
+                async |_call_session| {},   // No-op for accepted calls.
+            )
+            .await?;
+
+            // Now, make the outbound call.
+            if let Err(e) = call_manager
+                .call(ticket, on_call_accepted, on_call_rejected)
+                .await
+            {
+                eprintln!("Failed to initiate call: {}", e);
+                // If the call itself fails, we also mark it as finished.
+                *is_call_finished.lock().await = true;
             }
+
+            // Wait until the call is finished (either rejected or completed).
+            println!("Waiting for call to complete or be rejected...");
+            while !*is_call_finished.lock().await {
+                tokio::time::sleep(Duration::from_millis(100)).await;
+            }
+            println!("Exiting.");
         }
     }
 

@@ -20,7 +20,7 @@ class AppRouter {
   static final router = Provider((ref) {
     return GoRouter(
       redirect: (context, state) {
-        final displayName = ref.read(profileProvider.notifier).getDisplayName();
+        final displayName = ref.read(displayNameProvider);
         if (displayName == null) {
           return "/";
         }
@@ -42,14 +42,9 @@ class AppRouter {
                   path: "/calling",
                   builder: (context, state) {
                     final params = state.uri.queryParameters;
-                    final isIncoming = params["incoming"] == "true";
                     final name = params["name"] ?? "Unknown";
                     final nodeId = params["nodeId"] ?? "";
-                    return CallingPage(
-                      targetNodeId: nodeId,
-                      isIncoming: isIncoming,
-                      targetName: name,
-                    );
+                    return CallingPage(targetNodeId: nodeId, targetName: name);
                   },
                 ),
               ],

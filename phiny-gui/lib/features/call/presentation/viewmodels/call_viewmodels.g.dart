@@ -41,7 +41,7 @@ final class CallViewModelProvider
   }
 }
 
-String _$callViewModelHash() => r'73fcad99a8befa41e709cabf05953eeacc955582';
+String _$callViewModelHash() => r'c197e2806293cbc65a650a789cdb47a51ded9d3a';
 
 abstract class _$CallViewModel extends $Notifier<CallViewModelState> {
   CallViewModelState build();

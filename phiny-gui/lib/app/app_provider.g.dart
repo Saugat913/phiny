@@ -9,52 +9,55 @@ part of 'app_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(IncomingCall)
-const incomingCallProvider = IncomingCallProvider._();
+@ProviderFor(IncomingCallDecision)
+const incomingCallDecisionProvider = IncomingCallDecisionProvider._();
 
-final class IncomingCallProvider
-    extends $NotifierProvider<IncomingCall, IncomingCallState?> {
-  const IncomingCallProvider._()
+final class IncomingCallDecisionProvider
+    extends $NotifierProvider<IncomingCallDecision, IncomingCallDecisionState> {
+  const IncomingCallDecisionProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'incomingCallProvider',
+        name: r'incomingCallDecisionProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$incomingCallHash();
+  String debugGetCreateSourceHash() => _$incomingCallDecisionHash();
 
   @$internal
   @override
-  IncomingCall create() => IncomingCall();
+  IncomingCallDecision create() => IncomingCallDecision();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(IncomingCallState? value) {
+  Override overrideWithValue(IncomingCallDecisionState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<IncomingCallState?>(value),
+      providerOverride: $SyncValueProvider<IncomingCallDecisionState>(value),
     );
   }
 }
 
-String _$incomingCallHash() => r'db732652df1c1f6e322ec01e6580cf95979d8429';
+String _$incomingCallDecisionHash() =>
+    r'2f06d92727d885146b9a076a6f0f50f6d29d2b09';
 
-abstract class _$IncomingCall extends $Notifier<IncomingCallState?> {
-  IncomingCallState? build();
+abstract class _$IncomingCallDecision
+    extends $Notifier<IncomingCallDecisionState> {
+  IncomingCallDecisionState build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<IncomingCallState?, IncomingCallState?>;
+    final ref =
+        this.ref as $Ref<IncomingCallDecisionState, IncomingCallDecisionState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<IncomingCallState?, IncomingCallState?>,
-              IncomingCallState?,
+              AnyNotifier<IncomingCallDecisionState, IncomingCallDecisionState>,
+              IncomingCallDecisionState,
               Object?,
               Object?
             >;
@@ -107,4 +110,4 @@ final class SharedPreferenceProvider
   }
 }
 
-String _$sharedPreferenceHash() => r'0b27f237e156eda5e5bee23c0c40ba39148104dd';
+String _$sharedPreferenceHash() => r'b3229ee3f41e700171174e09baa7bb0987e73b04';
