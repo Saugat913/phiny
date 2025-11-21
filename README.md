@@ -12,10 +12,10 @@ A minimal peer‑to‑peer audio call prototype using Rust and iroh. Includes a 
 
 ## Screenshots
 <p align="center">
- <img src="images/screenshots/dialpad.png" alt="Dialpad" width="320">
- <img src="images/screenshots/call_received.png" alt="Incoming Call" width="320">
- <img src="images/screenshots/call_connect.png" alt="In Call" width="320">
- <img src="images/screenshots/profile.png" alt="Profile" width="320">
+ <img src="images/screenshots/dialpad.png" alt="Dialpad" width="320" height="250">
+ <img src="images/screenshots/profile.png" alt="Profile" width="320" height="250">
+ <img src="images/screenshots/call_received.png" alt="Incoming Call" width="320" height="250">
+ <img src="images/screenshots/call_connect.png" alt="In Call" width="320" height="250">
 </p>
 
 ## Project Layout
